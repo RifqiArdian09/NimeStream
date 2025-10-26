@@ -52,37 +52,69 @@ export default function AnimeCard({ item }: { item: AnimeItem }) {
   return (
     <Link
       href={href}
-      className="group overflow-hidden rounded-xl border bg-white/[0.03] ring-1 ring-black/5 transition hover:shadow-md hover:ring-black/10 dark:bg-white/5"
+      className="group overflow-hidden rounded-2xl border bg-white/[0.03] ring-1 ring-white/10 backdrop-blur-sm transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-primary/10 hover:ring-primary/20"
     >
-      <div className="relative aspect-[2/3] w-full">
+      <div className="relative aspect-[2/3] w-full overflow-hidden">
         {normalized ? (
           <Image
             src={normalized}
             alt={(item.title as string) || (item as any).name || (item as any).anime_title || "thumbnail"}
             fill
             sizes="(max-width:768px) 50vw, (max-width:1200px) 25vw, 20vw"
-            className="object-cover transition will-change-transform group-hover:scale-[1.03]"
+            className="object-cover transition-all duration-500 will-change-transform group-hover:scale-110"
           />
         ) : (
-          <div className="absolute inset-0 grid place-items-center text-xs opacity-70">
-            No Image
+          <div className="absolute inset-0 grid place-items-center bg-muted/30 text-xs opacity-70">
+            <div className="text-center">
+              <div className="mb-1 text-2xl">🎬</div>
+              <div>No Image</div>
+            </div>
           </div>
         )}
+        
+        {/* Episode Badge */}
         {ep ? (
-          <div className="absolute left-2 top-2 rounded bg-black/70 px-2 py-0.5 text-[10px] text-white">
+          <div className="absolute left-3 top-3 rounded-full bg-blue-500 px-3 py-1 text-[10px] font-semibold text-white shadow-lg backdrop-blur-sm">
             {ep}
           </div>
         ) : null}
+        
+        {/* Score Badge */}
         {score !== undefined ? (
-          <div className="absolute right-2 top-2 rounded bg-black/70 px-2 py-0.5 text-[10px] text-yellow-300">
+          <div className="absolute right-3 top-3 rounded-full bg-yellow-400 px-3 py-1 text-[10px] font-semibold text-black shadow-lg backdrop-blur-sm">
             ★ {score}
           </div>
         ) : null}
+        
+        {/* Status Badge */}
+        {(item as any).status && (
+          <div className="absolute bottom-3 left-3 rounded-full bg-green-500 px-3 py-1 text-[10px] font-semibold text-white shadow-lg backdrop-blur-sm">
+            {(item as any).status}
+          </div>
+        )}
+        
+        {/* Hover Play Button */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+          <div className="rounded-full bg-white/20 p-4 backdrop-blur-sm">
+            <div className="h-6 w-6 rounded-full bg-white flex items-center justify-center">
+              <div className="ml-0.5 h-0 w-0 border-l-[6px] border-l-black border-y-[4px] border-y-transparent"></div>
+            </div>
+          </div>
+        </div>
       </div>
-      <div className="p-2">
-        <p className="line-clamp-2 text-sm font-medium leading-snug">
+      
+      <div className="p-4">
+        <h3 className="line-clamp-2 text-sm font-semibold leading-tight text-foreground group-hover:text-primary transition-colors">
           {item.title || (item as any).name || (item as any).anime_title || "Untitled"}
-        </p>
+        </h3>
+        
+        {/* Additional Info */}
+        <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
+          <span>{(item as any).type || "Anime"}</span>
+          {(item as any).release && (
+            <span>{(item as any).release}</span>
+          )}
+        </div>
       </div>
     </Link>
   );

@@ -2,14 +2,11 @@
 import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { 
-  DownloadIcon, 
   SettingsIcon, 
   PlayIcon, 
   BookmarkIcon,
   MaximizeIcon,
-  MinimizeIcon,
-  GaugeIcon,
-  SubtitlesIcon
+  MinimizeIcon
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -18,6 +15,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { toast } from "sonner";
 
 interface VideoSource {
   quality: string;
@@ -41,14 +39,10 @@ export default function VideoPlayer({ serverId, src: initialSrc, title, episodeS
   
   // New state for additional features
   const [isBookmarked, setIsBookmarked] = useState<boolean>(false);
-  const [playbackSpeed, setPlaybackSpeed] = useState<number>(1);
-  const [subtitlesEnabled, setSubtitlesEnabled] = useState<boolean>(true);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   
   const playerRef = useRef<HTMLDivElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  
-  const speedOptions = [0.5, 0.75, 1, 1.25, 1.5, 2];
 
   useEffect(() => {
     if (initialSrc) {
@@ -68,26 +62,32 @@ export default function VideoPlayer({ serverId, src: initialSrc, title, episodeS
         const data = await res.json();
         
         // Handle multiple quality sources
-        if (Array.isArray(data?.sources)) {
+        if (Array.isArray(data?.sources) && data.sources.length > 0) {
           const videoSources: VideoSource[] = data.sources.map((s: any) => ({
-            quality: s?.quality || s?.label || s?.resolution || "Unknown",
+            quality: s?.quality || s?.label || s?.resolution || "Auto",
             url: s?.url || s?.link || s?.src || "",
             size: s?.size || s?.filesize
-          }));
+          })).filter(s => s.url); // Filter out empty URLs
           
-          if (mounted) {
+          if (mounted && videoSources.length > 0) {
             setSources(videoSources);
-            if (videoSources.length > 0) {
-              setSrc(videoSources[0].url);
-              setCurrentQuality(videoSources[0].quality);
-            }
+            // Try to find HD quality first, otherwise use first available
+            const hdSource = videoSources.find(s => 
+              s.quality.toLowerCase().includes('hd') || 
+              s.quality.toLowerCase().includes('720') ||
+              s.quality.toLowerCase().includes('1080')
+            );
+            const selectedSource = hdSource || videoSources[0];
+            setSrc(selectedSource.url);
+            setCurrentQuality(selectedSource.quality);
           }
         } else {
-          // Single source
+          // Single source or fallback
           const url = data?.url || data?.link || data?.data || data?.embed || "";
-          if (mounted) {
+          if (mounted && url) {
             setSrc(url);
             setSources([{ quality: "Auto", url }]);
+            setCurrentQuality("Auto");
           }
         }
       } catch (e: any) {
@@ -105,18 +105,9 @@ export default function VideoPlayer({ serverId, src: initialSrc, title, episodeS
   const handleQualityChange = (source: VideoSource) => {
     setSrc(source.url);
     setCurrentQuality(source.quality);
+    toast.success(`Kualitas diubah ke ${source.quality}`);
   };
 
-  const handleDownload = (source: VideoSource) => {
-    // Create download link
-    const link = document.createElement('a');
-    link.href = source.url;
-    link.download = `${title || 'episode'}-${source.quality}.mp4`;
-    link.target = '_blank';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
 
   // Bookmark functionality
   useEffect(() => {
@@ -134,26 +125,16 @@ export default function VideoPlayer({ serverId, src: initialSrc, title, episodeS
     
     if (isBookmarked) {
       newBookmarks = bookmarks.filter((slug: string) => slug !== episodeSlug);
+      toast.success("Episode dihapus dari bookmark");
     } else {
       newBookmarks = [...bookmarks, episodeSlug];
+      toast.success("Episode disimpan ke bookmark");
     }
     
     localStorage.setItem('bookmarkedEpisodes', JSON.stringify(newBookmarks));
     setIsBookmarked(!isBookmarked);
   };
 
-  // Speed control
-  const handleSpeedChange = (speed: number) => {
-    setPlaybackSpeed(speed);
-    // Note: Speed control for iframe videos is limited, but we can store preference
-    localStorage.setItem('preferredPlaybackSpeed', speed.toString());
-  };
-
-  // Subtitle toggle
-  const toggleSubtitles = () => {
-    setSubtitlesEnabled(!subtitlesEnabled);
-    localStorage.setItem('subtitlesEnabled', (!subtitlesEnabled).toString());
-  };
 
   // Fullscreen functionality
   const toggleFullscreen = async () => {
@@ -184,14 +165,6 @@ export default function VideoPlayer({ serverId, src: initialSrc, title, episodeS
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
 
-  // Load saved preferences
-  useEffect(() => {
-    const savedSpeed = localStorage.getItem('preferredPlaybackSpeed');
-    const savedSubtitles = localStorage.getItem('subtitlesEnabled');
-    
-    if (savedSpeed) setPlaybackSpeed(parseFloat(savedSpeed));
-    if (savedSubtitles) setSubtitlesEnabled(savedSubtitles === 'true');
-  }, []);
 
   if (err) return <div className="rounded-md border p-4 text-sm text-red-600">{err}</div>;
   if (loading) return <div className="rounded-md border p-4 text-sm opacity-70">Memuat player...</div>;
@@ -231,11 +204,8 @@ export default function VideoPlayer({ serverId, src: initialSrc, title, episodeS
         <div className="flex items-center gap-2">
           <PlayIcon className="size-4 text-green-500" />
           <span className="text-sm text-muted-foreground">
-            Kualitas: {currentQuality} • Kecepatan: {playbackSpeed}x
+            Kualitas: {currentQuality}
           </span>
-          {subtitlesEnabled && (
-            <span className="text-xs text-blue-500">SUB</span>
-          )}
         </div>
 
         <div className="flex items-center gap-2">
@@ -251,36 +221,6 @@ export default function VideoPlayer({ serverId, src: initialSrc, title, episodeS
             </Button>
           )}
 
-          {/* Speed Control */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
-                <GaugeIcon className="mr-2 size-4" />
-                {playbackSpeed}x
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {speedOptions.map((speed) => (
-                <DropdownMenuItem
-                  key={speed}
-                  onClick={() => handleSpeedChange(speed)}
-                  className={playbackSpeed === speed ? "bg-accent" : ""}
-                >
-                  {speed}x {speed === 1 && "(Normal)"}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          {/* Subtitle Toggle */}
-          <Button
-            onClick={toggleSubtitles}
-            variant={subtitlesEnabled ? "default" : "outline"}
-            size="sm"
-          >
-            <SubtitlesIcon className="mr-2 size-4" />
-            Sub
-          </Button>
           {/* Quality Selector */}
           {sources.length > 1 && (
             <DropdownMenu>
@@ -311,32 +251,6 @@ export default function VideoPlayer({ serverId, src: initialSrc, title, episodeS
             </DropdownMenu>
           )}
 
-          {/* Download Menu */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
-                <DownloadIcon className="mr-2 size-4" />
-                Download
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {sources.map((source, index) => (
-                <DropdownMenuItem
-                  key={index}
-                  onClick={() => handleDownload(source)}
-                >
-                  <div className="flex items-center justify-between w-full">
-                    <span>{source.quality}</span>
-                    {source.size && (
-                      <span className="text-xs text-muted-foreground ml-2">
-                        {source.size}
-                      </span>
-                    )}
-                  </div>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
       </div>
 

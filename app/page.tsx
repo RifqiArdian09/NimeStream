@@ -46,23 +46,43 @@ function pickList(obj: any): AnimeItem[] {
 }
 
 export default async function Home() {
-  const home = await getHome();
-  const items = pickList(home);
-  return (
-    <Container>
-      <Hero />
-      <SearchBar placeholder="Cari anime..." />
-      <Section title="Home">
-        {items?.length ? (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-            {items.map((it: AnimeItem, i: number) => (
-              <AnimeCard key={(it.slug || it.title || i).toString()} item={it} />
-            ))}
-          </div>
-        ) : (
-          <Empty />
-        )}
-      </Section>
-    </Container>
-  );
+  try {
+    const home = await getHome();
+    const allItems = pickList(home);
+    const items = allItems.slice(0, 30); // Limit to 30 items
+    
+    return (
+      <Container>
+        <Hero />
+        <div className="mt-8 sm:mt-10 md:mt-12">
+          <SearchBar placeholder="Cari anime..." />
+        </div>
+        <Section title="Home">
+          {items?.length ? (
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7">
+              {items.map((it: AnimeItem, i: number) => (
+                <AnimeCard key={(it.slug || it.title || i).toString()} item={it} />
+              ))}
+            </div>
+          ) : (
+            <Empty />
+          )}
+        </Section>
+      </Container>
+    );
+  } catch (error) {
+    console.error('Home page error:', error);
+    return (
+      <Container>
+        <Hero />
+        <div className="mt-8 sm:mt-10 md:mt-12">
+          <SearchBar placeholder="Cari anime..." />
+        </div>
+        <Section title="Home">
+          <Empty>Terjadi kesalahan saat memuat data</Empty>
+        </Section>
+      </Container>
+    );
+  }
 }
+

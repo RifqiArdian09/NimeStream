@@ -23,17 +23,27 @@ export default function SearchBar({ placeholder = "Search anime..." }: { placeho
   }
 
   return (
-    <form onSubmit={onSubmit} className="relative mb-6 w-full">
-      <input
-        value={q}
-        onChange={(e) => setQ(e.target.value)}
-        placeholder={placeholder}
-        className="h-11 w-full rounded-lg border bg-white/5 px-4 pr-10 text-sm outline-none ring-1 ring-transparent transition focus:ring-2 focus:ring-foreground/30"
-      />
-      <div className="absolute right-1.5 top-1.5 flex items-center gap-1">
-        <Button type="submit" size="icon" variant="outline" aria-label="Search">
-          <ArrowUpIcon className="size-4" />
-        </Button>
+    <form onSubmit={onSubmit} className="relative mb-6 sm:mb-8 w-full">
+      <div className="relative overflow-hidden rounded-xl sm:rounded-2xl bg-white/5 backdrop-blur-sm border border-white/20 shadow-2xl shadow-black/10">
+        <input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder={placeholder}
+          className="h-12 sm:h-14 w-full bg-transparent px-4 sm:px-6 pr-14 sm:pr-16 text-sm sm:text-base placeholder:text-muted-foreground/60 outline-none transition-all focus:placeholder:text-muted-foreground/40"
+        />
+        <div className="absolute right-1 sm:right-2 top-1 sm:top-2 flex items-center gap-1">
+          <Button 
+            type="submit" 
+            size="icon" 
+            className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl bg-primary hover:bg-primary/90 shadow-lg" 
+            aria-label="Search"
+          >
+            <ArrowUpIcon className="size-3 sm:size-4 rotate-90" />
+          </Button>
+        </div>
+        
+        {/* Animated border */}
+        <div className="absolute inset-0 rounded-xl sm:rounded-2xl bg-primary/20 opacity-0 transition-opacity focus-within:opacity-100 pointer-events-none" />
       </div>
     </form>
   );

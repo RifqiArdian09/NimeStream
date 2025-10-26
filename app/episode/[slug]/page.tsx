@@ -1,6 +1,5 @@
 import Container from "@/components/ui/Container";
 import VideoPlayer from "@/components/VideoPlayer";
-import SearchBar from "@/components/SearchBar";
 import Section from "@/components/ui/Section";
 import { api } from "@/lib/api";
 import Link from "next/link";
@@ -26,8 +25,6 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
 
   return (
     <Container>
-      <SearchBar />
-      
       <Section title={title}>
         {/* Back to anime link */}
         {animeSlug && (

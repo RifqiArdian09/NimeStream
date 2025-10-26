@@ -23,7 +23,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ q
   const { q: qParam } = await searchParams;
   const q = (qParam || "").toString();
   const data = q ? await getData(q) : null;
-  const items = pickList(data);
+  const allItems = pickList(data);
+  const items = allItems.slice(0, 30); // Limit to 30 items
   return (
     <Container>
       <SearchBar />
@@ -35,7 +36,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ q
         ) : (
           <>
             <p className="mb-3 text-sm opacity-70">Results for: {q}</p>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7">
               {items.map((it: AnimeItem, i: number) => (
                 <AnimeCard key={(it.slug || it.title || i).toString()} item={it} />
               ))}

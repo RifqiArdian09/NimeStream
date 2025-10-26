@@ -11,7 +11,8 @@ async function getGenres() {
 
 export default async function Page() {
   const data = await getGenres();
-  const list: any[] = Array.isArray(data) ? data : data?.data || data?.genres || data?.list || [];
+  const allList: any[] = Array.isArray(data) ? data : data?.data || data?.genres || data?.list || [];
+  const list = allList.slice(0, 30); // Limit to 30 genres
   return (
     <Container>
       <SearchBar />
@@ -19,7 +20,7 @@ export default async function Page() {
         {list.length === 0 ? (
           <Empty>No genres</Empty>
         ) : (
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7">
             {list.map((g: any, i: number) => {
               const slug = g?.slug || g?.value || g?.name?.toLowerCase?.().replace(/\s+/g, "-") || `g-${i}`;
               const name = g?.name || g?.title || g?.label || slug;
