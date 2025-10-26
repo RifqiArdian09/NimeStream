@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Container from "@/components/ui/Container";
 import SearchBar from "@/components/SearchBar";
 import Section from "@/components/ui/Section";
@@ -29,7 +29,9 @@ export default function BookmarksPage() {
 
   return (
     <Container>
-      <SearchBar />
+      <Suspense fallback={null}>
+        <SearchBar />
+      </Suspense>
       
       <Section 
         title="Episode Tersimpan"
