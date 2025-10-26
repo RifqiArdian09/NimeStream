@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 
 const BASE_URL = "https://www.sankavollerei.com";
 
-export async function GET(_req: Request, { params }: { params: { id: string } }) {
-  const { id } = params;
+export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   try {
     const res = await fetch(`${BASE_URL}/anime/server/${encodeURIComponent(id)}`, {
       headers: { Accept: "application/json" },
