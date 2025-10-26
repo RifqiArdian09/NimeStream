@@ -4,7 +4,38 @@ import { AnimeItem, BASE_URL } from "@/lib/api";
 
 export default function AnimeCard({ item }: { item: AnimeItem }) {
   const href = item.slug ? `/anime/${item.slug}` : "#";
-  const ep = item.episode ? `Ep ${item.episode}` : item.status || "";
+  // Normalize episode count across various possible fields
+  const epCandidates: any[] = [
+    (item as any).episode,
+    (item as any).episodes,
+    (item as any).totalEpisodes,
+    (item as any).total_eps,
+    (item as any).total,
+    (item as any).eps,
+  ];
+  let epVal: number | string | undefined = epCandidates.find((v) => v !== undefined && v !== null);
+  if (Array.isArray(epVal)) epVal = epVal.length;
+  if (typeof epVal === "string") {
+    const m = epVal.match(/\d+(?:\.\d+)?/);
+    epVal = m ? Number(m[0]) : epVal;
+  }
+  const ep = epVal !== undefined && epVal !== null && epVal !== "" ? String(epVal) : (item as any).status || "";
+
+  // Normalize rating/score across various possible fields
+  const scoreCandidates: any[] = [
+    (item as any).score,
+    (item as any).rating,
+    (item as any).rate,
+    (item as any).star,
+    (item as any).stars,
+  ];
+  let scoreVal: number | string | undefined = scoreCandidates.find((v) => v !== undefined && v !== null && v !== "");
+  if (typeof scoreVal === "string") {
+    const m = scoreVal.match(/\d+(?:\.\d+)?/);
+    scoreVal = m ? Number(m[0]) : Number(scoreVal);
+    if (Number.isNaN(scoreVal)) scoreVal = undefined;
+  }
+  const score = typeof scoreVal === "number" ? Number(scoreVal.toFixed(1)) : undefined;
   const thumb =
     (item as any).thumbnail ||
     (item as any).image ||
@@ -21,7 +52,7 @@ export default function AnimeCard({ item }: { item: AnimeItem }) {
   return (
     <Link
       href={href}
-      className="group overflow-hidden rounded-lg border bg-white/5 transition hover:shadow-sm dark:bg-white/5"
+      className="group overflow-hidden rounded-xl border bg-white/[0.03] ring-1 ring-black/5 transition hover:shadow-md hover:ring-black/10 dark:bg-white/5"
     >
       <div className="relative aspect-[2/3] w-full">
         {normalized ? (
@@ -42,9 +73,9 @@ export default function AnimeCard({ item }: { item: AnimeItem }) {
             {ep}
           </div>
         ) : null}
-        {item.score ? (
+        {score !== undefined ? (
           <div className="absolute right-2 top-2 rounded bg-black/70 px-2 py-0.5 text-[10px] text-yellow-300">
-            ★ {String(item.score)}
+            ★ {score}
           </div>
         ) : null}
       </div>

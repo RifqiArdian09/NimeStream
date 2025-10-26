@@ -1,4 +1,12 @@
-import Link from "next/link";
+import {
+  Pagination as UiPagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 export default function Pagination({
   basePath,
@@ -17,27 +25,61 @@ export default function Pagination({
   const next = current + 1;
   const makeHref = (n: number) =>
     mode === "query" ? `${basePath}?${paramName}=${n}` : `${basePath}/${n}`;
+
   return (
-    <div className="mt-6 flex items-center justify-center gap-2">
-      <Link
-        href={makeHref(prev)}
-        className={`rounded-md border px-3 py-1.5 text-sm ${
-          current === 1 ? "pointer-events-none opacity-50" : ""
-        }`}
-        aria-disabled={current === 1}
-      >
-        Prev
-      </Link>
-      <span className="text-sm opacity-70">Page {current}</span>
-      <Link
-        href={makeHref(next)}
-        className={`rounded-md border px-3 py-1.5 text-sm ${
-          hasNext ? "" : "pointer-events-none opacity-50"
-        }`}
-        aria-disabled={!hasNext}
-      >
-        Next
-      </Link>
-    </div>
+    <UiPagination className="mt-6">
+      <PaginationContent>
+        <PaginationItem>
+          <PaginationPrevious
+            href={makeHref(prev)}
+            aria-disabled={current === 1}
+            className={current === 1 ? "pointer-events-none opacity-50" : undefined}
+          />
+        </PaginationItem>
+
+        {/* First page shortcut when far from start */}
+        {current > 2 && (
+          <>
+            <PaginationItem>
+              <PaginationLink href={makeHref(1)}>1</PaginationLink>
+            </PaginationItem>
+            {current > 3 && (
+              <PaginationItem>
+                <PaginationEllipsis />
+              </PaginationItem>
+            )}
+          </>
+        )}
+
+        {/* Previous number */}
+        {current > 1 && (
+          <PaginationItem>
+            <PaginationLink href={makeHref(current - 1)}>{current - 1}</PaginationLink>
+          </PaginationItem>
+        )}
+
+        {/* Current page indicator */}
+        <PaginationItem>
+          <PaginationLink href={makeHref(current)} isActive>
+            {current}
+          </PaginationLink>
+        </PaginationItem>
+
+        {/* Next number */}
+        {hasNext && (
+          <PaginationItem>
+            <PaginationLink href={makeHref(current + 1)}>{current + 1}</PaginationLink>
+          </PaginationItem>
+        )}
+
+        <PaginationItem>
+          <PaginationNext
+            href={makeHref(next)}
+            aria-disabled={!hasNext}
+            className={!hasNext ? "pointer-events-none opacity-50" : undefined}
+          />
+        </PaginationItem>
+      </PaginationContent>
+    </UiPagination>
   );
 }

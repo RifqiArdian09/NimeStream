@@ -1,6 +1,9 @@
 import Container from "@/components/ui/Container";
 import AnimeCard from "@/components/AnimeCard";
 import { api, AnimeItem } from "@/lib/api";
+import SearchBar from "@/components/SearchBar";
+import Section from "@/components/ui/Section";
+import Empty from "@/components/ui/Empty";
 
 async function getData(q: string) {
   return api<any>(`/anime/search/${encodeURIComponent(q)}`);
@@ -23,18 +26,23 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ q
   const items = pickList(data);
   return (
     <Container>
-      <h1 className="mb-4 text-2xl font-semibold tracking-tight">Search</h1>
-      {!q && <div className="rounded-md border p-4 text-sm opacity-70">Enter a keyword in the search bar</div>}
-      {q && (
-        <>
-          <p className="mb-3 text-sm opacity-70">Results for: {q}</p>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-            {items.map((it: AnimeItem, i: number) => (
-              <AnimeCard key={(it.slug || it.title || i).toString()} item={it} />
-            ))}
-          </div>
-        </>
-      )}
+      <SearchBar />
+      <Section title="Search">
+        {!q ? (
+          <Empty>Enter a keyword in the search bar</Empty>
+        ) : items.length === 0 ? (
+          <Empty>No results for “{q}”</Empty>
+        ) : (
+          <>
+            <p className="mb-3 text-sm opacity-70">Results for: {q}</p>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+              {items.map((it: AnimeItem, i: number) => (
+                <AnimeCard key={(it.slug || it.title || i).toString()} item={it} />
+              ))}
+            </div>
+          </>
+        )}
+      </Section>
     </Container>
   );
 }

@@ -2,6 +2,7 @@ import Container from "@/components/ui/Container";
 import { api } from "@/lib/api";
 import Link from "next/link";
 import { collectSchedule } from "@/lib/parser";
+import SearchBar from "@/components/SearchBar";
 
 async function getSchedule() {
   return api<any>(`/anime/schedule`);
@@ -13,6 +14,7 @@ export default async function Page() {
   const days = Object.keys(buckets || {});
   return (
     <Container>
+      <SearchBar />
       <h1 className="mb-4 text-2xl font-semibold tracking-tight">Schedule</h1>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {days.length === 0 && (

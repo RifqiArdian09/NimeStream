@@ -1,7 +1,11 @@
 import Container from "@/components/ui/Container";
-import EpisodePlayer from "@/components/EpisodePlayer";
+import VideoPlayer from "@/components/VideoPlayer";
+import SearchBar from "@/components/SearchBar";
+import Section from "@/components/ui/Section";
 import { api } from "@/lib/api";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { ChevronLeftIcon, ChevronRightIcon, ArrowLeftIcon } from "lucide-react";
 
 async function getData(slug: string) {
   return api<any>(`/anime/episode/${encodeURIComponent(slug)}`);
@@ -22,49 +26,63 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
 
   return (
     <Container>
-      <h1 className="mb-4 text-2xl font-semibold tracking-tight">{title}</h1>
-      {streamUrl ? (
-        <EpisodePlayer src={streamUrl} />
-      ) : serverId ? (
-        <EpisodePlayer serverId={serverId} />
-      ) : (
-        <div className="rounded-md border p-4 text-sm opacity-70">No server available</div>
-      )}
+      <SearchBar />
+      
+      <Section title={title}>
+        {/* Back to anime link */}
+        {animeSlug && (
+          <div className="mb-4">
+            <Button asChild variant="outline" size="sm">
+              <Link href={`/anime/${animeSlug}`}>
+                <ArrowLeftIcon className="mr-2 size-4" />
+                Kembali ke Anime
+              </Link>
+            </Button>
+          </div>
+        )}
 
-      {Array.isArray(servers) && servers.length > 1 && (
-        <div className="mt-4 flex flex-wrap gap-2 text-sm">
-          {servers.map((s: any, i: number) => (
-            <span key={i} className="rounded-md border px-2 py-1 opacity-70">
-              {s?.name || s?.label || s?.server || `Server ${i + 1}`}
-            </span>
-          ))}
-        </div>
-      )}
+        {/* Video Player */}
+        {streamUrl ? (
+          <VideoPlayer src={streamUrl} title={title} episodeSlug={slug} />
+        ) : serverId ? (
+          <VideoPlayer serverId={serverId} title={title} episodeSlug={slug} />
+        ) : (
+          <div className="rounded-md border p-4 text-sm opacity-70">Server tidak tersedia</div>
+        )}
 
-      {(prevSlug || nextSlug) && (
-        <div className="mt-6 flex items-center gap-2">
-          <Link
-            href={prevSlug ? `/episode/${prevSlug}` : "#"}
-            className={`rounded-md border px-3 py-1.5 text-sm ${prevSlug ? "" : "pointer-events-none opacity-50"}`}
-            aria-disabled={!prevSlug}
-          >
-            ← Previous
-          </Link>
-          <Link
-            href={nextSlug ? `/episode/${nextSlug}` : "#"}
-            className={`rounded-md border px-3 py-1.5 text-sm ${nextSlug ? "" : "pointer-events-none opacity-50"}`}
-            aria-disabled={!nextSlug}
-          >
-            Next →
-          </Link>
-        </div>
-      )}
+        {/* Server Selection */}
+        {Array.isArray(servers) && servers.length > 1 && (
+          <div className="mt-6">
+            <h3 className="mb-3 text-sm font-medium">Server Alternatif:</h3>
+            <div className="flex flex-wrap gap-2">
+              {servers.map((s: any, i: number) => (
+                <Button key={i} variant="outline" size="sm" className="text-xs">
+                  {s?.name || s?.label || s?.server || `Server ${i + 1}`}
+                </Button>
+              ))}
+            </div>
+          </div>
+        )}
 
-      {animeSlug && (
-        <div className="mt-6">
-          <Link href={`/anime/${animeSlug}`} className="text-sm underline">Back to anime</Link>
-        </div>
-      )}
+        {/* Episode Navigation */}
+        {(prevSlug || nextSlug) && (
+          <div className="mt-6 flex items-center justify-between">
+            <Button asChild variant="outline" disabled={!prevSlug}>
+              <Link href={prevSlug ? `/episode/${prevSlug}` : "#"}>
+                <ChevronLeftIcon className="mr-2 size-4" />
+                Episode Sebelumnya
+              </Link>
+            </Button>
+            
+            <Button asChild variant="outline" disabled={!nextSlug}>
+              <Link href={nextSlug ? `/episode/${nextSlug}` : "#"}>
+                Episode Selanjutnya
+                <ChevronRightIcon className="ml-2 size-4" />
+              </Link>
+            </Button>
+          </div>
+        )}
+      </Section>
     </Container>
   );
 }
