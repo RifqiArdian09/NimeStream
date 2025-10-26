@@ -6,9 +6,10 @@ import { collectAnimeList } from "@/lib/parser";
 import SearchBar from "@/components/SearchBar";
 import Section from "@/components/ui/Section";
 import Empty from "@/components/ui/Empty";
+import { Suspense } from "react";
 
 async function getData(page: string) {
-  return api<any>(`/anime/complete-anime/${encodeURIComponent(page)}`);
+  return api<any>(`/anime/complete-anime/${encodeURIComponent(page)}`, { cache: "force-cache", next: { revalidate: 3600 } });
 }
 
 function pickList(obj: any): AnimeItem[] {
@@ -23,7 +24,9 @@ export default async function Page({ params }: { params: Promise<{ page: string 
   const items = allItems.slice(0, 30); // Limit to 30 items
   return (
     <Container>
-      <SearchBar />
+      <Suspense fallback={null}>
+        <SearchBar />
+      </Suspense>
       <Section title="Anime Completed">
         {items?.length ? (
           <div className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7">

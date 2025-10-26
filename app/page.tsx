@@ -5,9 +5,10 @@ import SearchBar from "@/components/SearchBar";
 import Section from "@/components/ui/Section";
 import Empty from "@/components/ui/Empty";
 import Hero from "@/components/Hero";
+import { Suspense } from "react";
 
 async function getHome() {
-  const data = await api<any>("/anime/home");
+  const data = await api<any>("/anime/home", { cache: "force-cache", next: { revalidate: 3600 } });
   return data;
 }
 
@@ -55,7 +56,9 @@ export default async function Home() {
       <Container>
         <Hero />
         <div className="mt-8 sm:mt-10 md:mt-12">
-          <SearchBar placeholder="Cari anime..." />
+          <Suspense fallback={null}>
+            <SearchBar placeholder="Cari anime..." />
+          </Suspense>
         </div>
         <Section title="Home">
           {items?.length ? (
@@ -76,7 +79,9 @@ export default async function Home() {
       <Container>
         <Hero />
         <div className="mt-8 sm:mt-10 md:mt-12">
-          <SearchBar placeholder="Cari anime..." />
+          <Suspense fallback={null}>
+            <SearchBar placeholder="Cari anime..." />
+          </Suspense>
         </div>
         <Section title="Home">
           <Empty>Terjadi kesalahan saat memuat data</Empty>

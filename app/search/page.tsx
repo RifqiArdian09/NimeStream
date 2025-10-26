@@ -4,6 +4,7 @@ import { api, AnimeItem } from "@/lib/api";
 import SearchBar from "@/components/SearchBar";
 import Section from "@/components/ui/Section";
 import Empty from "@/components/ui/Empty";
+import { Suspense } from "react";
 
 async function getData(q: string) {
   return api<any>(`/anime/search/${encodeURIComponent(q)}`);
@@ -19,30 +20,14 @@ function pickList(obj: any): AnimeItem[] {
   return merged;
 }
 
-export default async function Page({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
-  const { q: qParam } = await searchParams;
-  const q = (qParam || "").toString();
-  const data = q ? await getData(q) : null;
-  const allItems = pickList(data);
-  const items = allItems.slice(0, 30); // Limit to 30 items
+export default async function Page() {
   return (
     <Container>
-      <SearchBar />
+      <Suspense fallback={null}>
+        <SearchBar />
+      </Suspense>
       <Section title="Search">
-        {!q ? (
-          <Empty>Enter a keyword in the search bar</Empty>
-        ) : items.length === 0 ? (
-          <Empty>No results for “{q}”</Empty>
-        ) : (
-          <>
-            <p className="mb-3 text-sm opacity-70">Results for: {q}</p>
-            <div className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7">
-              {items.map((it: AnimeItem, i: number) => (
-                <AnimeCard key={(it.slug || it.title || i).toString()} item={it} />
-              ))}
-            </div>
-          </>
-        )}
+        <Empty>Enter a keyword in the search bar</Empty>
       </Section>
     </Container>
   );

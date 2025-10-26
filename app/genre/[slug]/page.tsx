@@ -10,18 +10,16 @@ import { Suspense } from "react";
 
 async function getData(slug: string, page?: string) {
   const qs = page ? `?page=${encodeURIComponent(page)}` : "";
-  return api<any>(`/anime/genre/${encodeURIComponent(slug)}${qs}`);
+  return api<any>(`/anime/genre/${encodeURIComponent(slug)}${qs}`, { cache: "force-cache", next: { revalidate: 3600 } });
 }
 
 function pickList(obj: any): AnimeItem[] {
   return collectAnimeList(obj);
 }
 
-export default async function Page({ params, searchParams }: { params: Promise<{ slug: string }>, searchParams: Promise<{ page?: string }> }) {
+export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const { page: pageParam } = await searchParams;
-  const page = pageParam || "1";
-  const data = await getData(slug, page);
+  const data = await getData(slug);
   const allItems = pickList(data);
   const items = allItems.slice(0, 30); // Limit to 30 items
   return (
@@ -40,7 +38,7 @@ export default async function Page({ params, searchParams }: { params: Promise<{
           </div>
         )}
       </Section>
-      <Pagination basePath={`/genre/${slug}`} current={parseInt(page, 10) || 1} mode="query" paramName="page" />
+      <Pagination basePath={`/genre/${slug}`} current={1} mode="query" paramName="page" />
     </Container>
   );
 }
