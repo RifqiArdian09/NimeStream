@@ -4,9 +4,10 @@ import Link from "next/link";
 import SearchBar from "@/components/SearchBar";
 import Empty from "@/components/ui/Empty";
 import Section from "@/components/ui/Section";
+import { Suspense } from "react";
 
 async function getGenres() {
-  return api<any>(`/anime/genre`);
+  return api<any>(`/anime/genre`, { cache: "force-cache", next: { revalidate: 3600 } });
 }
 
 export default async function Page() {
@@ -15,7 +16,9 @@ export default async function Page() {
   const list = allList.slice(0, 30); // Limit to 30 genres
   return (
     <Container>
-      <SearchBar />
+      <Suspense fallback={null}>
+        <SearchBar />
+      </Suspense>
       <Section title="Genres">
         {list.length === 0 ? (
           <Empty>No genres</Empty>

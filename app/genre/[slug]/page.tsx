@@ -6,6 +6,7 @@ import { collectAnimeList } from "@/lib/parser";
 import SearchBar from "@/components/SearchBar";
 import Section from "@/components/ui/Section";
 import Empty from "@/components/ui/Empty";
+import { Suspense } from "react";
 
 async function getData(slug: string, page?: string) {
   const qs = page ? `?page=${encodeURIComponent(page)}` : "";
@@ -25,7 +26,9 @@ export default async function Page({ params, searchParams }: { params: Promise<{
   const items = allItems.slice(0, 30); // Limit to 30 items
   return (
     <Container>
-      <SearchBar />
+      <Suspense fallback={null}>
+        <SearchBar />
+      </Suspense>
       <Section title={`Genre: ${slug}`}>
         {items.length === 0 ? (
           <Empty>No anime</Empty>

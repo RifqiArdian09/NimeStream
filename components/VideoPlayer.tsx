@@ -23,6 +23,17 @@ interface VideoSource {
   size?: string;
 }
 
+interface ApiSource {
+  quality?: string;
+  label?: string;
+  resolution?: string;
+  url?: string;
+  link?: string;
+  src?: string;
+  size?: string;
+  filesize?: string;
+}
+
 interface VideoPlayerProps {
   serverId?: string;
   src?: string;
@@ -63,16 +74,16 @@ export default function VideoPlayer({ serverId, src: initialSrc, title, episodeS
         
         // Handle multiple quality sources
         if (Array.isArray(data?.sources) && data.sources.length > 0) {
-          const videoSources: VideoSource[] = data.sources.map((s: any) => ({
+          const videoSources: VideoSource[] = data.sources.map((s: ApiSource) => ({
             quality: s?.quality || s?.label || s?.resolution || "Auto",
             url: s?.url || s?.link || s?.src || "",
             size: s?.size || s?.filesize
-          })).filter(s => s.url); // Filter out empty URLs
+          })).filter((s: VideoSource) => !!s.url); // Filter out empty URLs
           
           if (mounted && videoSources.length > 0) {
             setSources(videoSources);
             // Try to find HD quality first, otherwise use first available
-            const hdSource = videoSources.find(s => 
+            const hdSource = videoSources.find((s: VideoSource) => 
               s.quality.toLowerCase().includes('hd') || 
               s.quality.toLowerCase().includes('720') ||
               s.quality.toLowerCase().includes('1080')
