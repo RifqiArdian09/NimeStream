@@ -33,7 +33,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         ) : (
           <div className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7">
             {items.map((it: AnimeItem, i: number) => (
-              <AnimeCard key={(it.slug || it.title || i).toString()} item={it} />
+              <AnimeCard key={(it.slug || it.title || i).toString()} item={it} priority={i < 6} />
             ))}
           </div>
         )}

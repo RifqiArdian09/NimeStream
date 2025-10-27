@@ -1,12 +1,23 @@
 import { AnimeItem } from "./api";
 
 export function normalizeItem(v: any): AnimeItem {
+  let rawSlug: any =
+    v?.slug ||
+    v?.link ||
+    v?.url;
+  let slug: string | undefined = undefined;
+  if (typeof rawSlug === "string") {
+    // If slug appears to be a URL or contains slashes, take the last non-empty path segment
+    if (rawSlug.includes("://") || rawSlug.includes("/")) {
+      const parts = rawSlug.split("/").filter(Boolean);
+      slug = parts.pop();
+    } else {
+      slug = rawSlug;
+    }
+  }
   return {
     title: v?.title || v?.name || v?.anime_title,
-    slug:
-      v?.slug ||
-      v?.link?.split?.("/")?.pop?.() ||
-      v?.url?.split?.("/")?.pop?.(),
+    slug,
     thumbnail:
       v?.thumbnail || v?.poster || v?.image || v?.thumb || v?.img || v?.cover,
     episode: v?.episode || v?.current_episode || v?.latest_episode,

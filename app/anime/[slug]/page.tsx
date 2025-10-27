@@ -8,16 +8,26 @@ import Empty from "@/components/ui/Empty";
 import { Button } from "@/components/ui/button";
 import { PlayIcon, InfoIcon, CalendarIcon, StarIcon } from "lucide-react";
 import BackButton from "@/components/BackButton";
+import { redirect } from "next/navigation";
 
 async function getData(slug: string) {
-  return api<any>(`/anime/anime/${encodeURIComponent(slug)}`);
+  return api<any>(`/anime/anime/${encodeURIComponent(slug)}`, { cache: "force-cache", next: { revalidate: 300 } });
 }
 
 export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const raw = await getData(slug);
+  const decodedSlug = decodeURIComponent(slug);
+  const normalizedSlug = (() => {
+    if (typeof decodedSlug !== "string") return decodedSlug as unknown as string;
+    const parts = decodedSlug.split("/").filter(Boolean);
+    return parts.length ? parts[parts.length - 1] : decodedSlug;
+  })();
+  if (normalizedSlug !== decodedSlug) {
+    redirect(`/anime/${encodeURIComponent(normalizedSlug)}`);
+  }
+  const raw = await getData(normalizedSlug);
   const data = raw?.data || raw; // some endpoints nest under data
-  const title = data?.title || data?.name || data?.anime_title || slug;
+  const title = data?.title || data?.name || data?.anime_title || normalizedSlug;
   let thumb: string | undefined = data?.thumbnail || data?.poster || data?.image;
   if (typeof thumb === "string") {
     if (thumb.startsWith("//")) thumb = `https:${thumb}`;
@@ -53,7 +63,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         <div className="flex flex-col gap-6 md:flex-row">
           {thumb && (
             <div className="relative h-80 w-60 shrink-0 overflow-hidden rounded-xl border shadow-lg">
-              <Image src={thumb} alt={title} fill className="object-cover" />
+              <Image src={thumb} alt={title} fill sizes="240px" className="object-cover" />
             </div>
           )}
           
@@ -112,7 +122,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
             {rawEpisodes.length > 0 && (
               <div className="flex gap-3">
                 <Button asChild size="lg">
-                  <Link href={`/episode/${rawEpisodes[0]?.slug || rawEpisodes[0]?.link?.split("/")?.pop() || 'ep-1'}`}>
+                  <Link href={`/episode/${encodeURIComponent(rawEpisodes[0]?.slug || rawEpisodes[0]?.link?.split("/")?.pop() || 'ep-1')}`}>
                     <PlayIcon className="mr-2 size-4" />
                     Mulai Menonton
                   </Link>
@@ -140,7 +150,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
               
               return (
                 <Button key={epSlug} asChild variant="outline" className="h-16 flex-col p-2" title={label}>
-                  <Link href={`/episode/${epSlug}`}>
+                  <Link href={`/episode/${encodeURIComponent(epSlug)}`}>
                     <div className="text-xs text-muted-foreground">EP</div>
                     <div className="font-semibold text-lg">{epNumber}</div>
                   </Link>

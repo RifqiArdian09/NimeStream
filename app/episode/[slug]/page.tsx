@@ -5,6 +5,7 @@ import { api } from "@/lib/api";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ChevronLeftIcon, ChevronRightIcon, ArrowLeftIcon } from "lucide-react";
+import { redirect } from "next/navigation";
 
 async function getData(slug: string) {
   return api<any>(`/anime/episode/${encodeURIComponent(slug)}`);
@@ -12,7 +13,16 @@ async function getData(slug: string) {
 
 export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const raw = await getData(slug);
+  const decodedSlug = decodeURIComponent(slug);
+  const normalizedSlug = (() => {
+    if (typeof decodedSlug !== "string") return decodedSlug as unknown as string;
+    const parts = decodedSlug.split("/").filter(Boolean);
+    return parts.length ? parts[parts.length - 1] : decodedSlug;
+  })();
+  if (normalizedSlug !== decodedSlug) {
+    redirect(`/episode/${encodeURIComponent(normalizedSlug)}`);
+  }
+  const raw = await getData(normalizedSlug);
   const data = raw?.data || raw;
   const title = data?.title || data?.name || data?.episode || slug;
   const streamUrl: string | undefined = data?.stream_url || data?.embed || data?.url;
@@ -30,7 +40,7 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         {animeSlug && (
           <div className="mb-4">
             <Button asChild variant="outline" size="sm">
-              <Link href={`/anime/${animeSlug}`}>
+              <Link href={`/anime/${encodeURIComponent(animeSlug)}`}>
                 <ArrowLeftIcon className="mr-2 size-4" />
                 Kembali ke Anime
               </Link>
@@ -65,14 +75,14 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         {(prevSlug || nextSlug) && (
           <div className="mt-6 flex items-center justify-between">
             <Button asChild variant="outline" disabled={!prevSlug}>
-              <Link href={prevSlug ? `/episode/${prevSlug}` : "#"}>
+              <Link href={prevSlug ? `/episode/${encodeURIComponent(prevSlug)}` : "#"}>
                 <ChevronLeftIcon className="mr-2 size-4" />
                 Episode Sebelumnya
               </Link>
             </Button>
             
             <Button asChild variant="outline" disabled={!nextSlug}>
-              <Link href={nextSlug ? `/episode/${nextSlug}` : "#"}>
+              <Link href={nextSlug ? `/episode/${encodeURIComponent(nextSlug)}` : "#"}>
                 Episode Selanjutnya
                 <ChevronRightIcon className="ml-2 size-4" />
               </Link>

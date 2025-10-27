@@ -2,8 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { AnimeItem, BASE_URL } from "@/lib/api";
 
-export default function AnimeCard({ item }: { item: AnimeItem }) {
-  const href = item.slug ? `/anime/${item.slug}` : "#";
+export default function AnimeCard({ item, priority = false }: { item: AnimeItem; priority?: boolean }) {
+  const href = item.slug ? `/anime/${encodeURIComponent(item.slug)}` : "#";
   // Normalize episode count across various possible fields
   const epCandidates: any[] = [
     (item as any).episode,
@@ -61,7 +61,10 @@ export default function AnimeCard({ item }: { item: AnimeItem }) {
             alt={(item.title as string) || (item as any).name || (item as any).anime_title || "thumbnail"}
             fill
             sizes="(max-width:768px) 50vw, (max-width:1200px) 25vw, 20vw"
-            className="object-cover transition-all duration-500 will-change-transform group-hover:scale-110"
+            priority={priority}
+            loading={priority ? "eager" : "lazy"}
+            placeholder="empty"
+            className="object-cover transition-all duration-500 group-hover:scale-110"
           />
         ) : (
           <div className="absolute inset-0 grid place-items-center bg-muted/30 text-xs opacity-70">
